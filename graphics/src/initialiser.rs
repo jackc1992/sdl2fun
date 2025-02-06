@@ -12,7 +12,6 @@ use sdl2::{
     rect::Rect,
     render::BlendMode,
     surface::Surface,
-    sys::SDL_WindowFlags,
     video::Window,
 };
 
@@ -27,8 +26,8 @@ impl State<'_> {
     fn new(context: &Sdl) -> Self {
         let video_subsystem = context.video().unwrap();
 
-        let height = 600;
-        let width = 800;
+        let height = 1080;
+        let width = 1920;
 
         let window: Window = video_subsystem
             .window("triangles", 800, 600)
@@ -73,8 +72,6 @@ impl State<'_> {
 }
 
 pub fn epic() {
-    let now = Instant::now();
-
     let context = init().unwrap();
     let mut state = State::new(&context);
 
@@ -82,8 +79,8 @@ pub fn epic() {
 
     let mut running = true;
 
-    println!("elapsed: {}", now.elapsed().as_millis());
     while running {
+        let now = Instant::now();
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit { .. } => {
@@ -123,13 +120,13 @@ pub fn epic() {
         let colour = 0xFF_FF_DF_DF;
         state.fill(colour);
 
-        let ws = state.window.surface(&event_pump).unwrap();
+        let mut ws = state.window.surface(&event_pump).unwrap();
         let rect: Rect = state.create_rect();
-        ws.blit(rect, &mut state.draw_surface, rect)
-            .unwrap()
-            .unwrap();
+        state.draw_surface.blit(rect, &mut ws, rect).unwrap();
 
         ws.update_window().unwrap();
+
+        println!("elapsed: {}", now.elapsed().as_millis());
         sleep(Duration::from_millis(1000 / 60));
     }
 }
