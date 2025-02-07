@@ -15,8 +15,8 @@ impl State<'_> {
     pub fn new(context: &Sdl) -> Self {
         let video_subsystem = context.video().unwrap();
 
-        let height = 1080;
-        let width = 1920;
+        let height = 600;
+        let width = 800;
 
         let window: Window = video_subsystem
             .window("triangles", width, height)
@@ -42,16 +42,19 @@ impl State<'_> {
     }
 
     pub fn resize(&mut self) {
+        let (x, y) = self.window.size();
+        self.width = x as i32;
+        self.height = y as i32;
         println!("{:?}", self.window.size());
     }
 
+    /// set the background colour homies
     pub fn clear(&self, colour: Colour) {
         // make a u32
         let colour = colour.to_u32();
 
         unsafe {
             let size = (self.width * self.height) as usize;
-
             let surface = *self.draw_surface.raw();
             let pixels = surface.pixels as *mut u32;
 
