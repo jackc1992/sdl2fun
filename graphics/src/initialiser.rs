@@ -15,6 +15,16 @@ use sdl2::{
     video::Window,
 };
 
+#[inline]
+fn minf(f1: f32, f2: f32) -> f32 {
+    if f1 < f2 { f1 } else { f2 }
+}
+
+#[inline]
+fn maxf(f1: f32, f2: f32) -> f32 {
+    if f1 > f2 { f1 } else { f2 }
+}
+
 struct State<'a> {
     width: i32,
     height: i32,
@@ -57,7 +67,20 @@ impl State<'_> {
         println!("{:?}", self.window.size());
     }
 
-    fn fill(&self, colour: u32) {
+    fn fill(&self, r: f32, g: f32, b: f32, a: f32) {
+        debug_assert!(r <= 1.0);
+        debug_assert!(g <= 1.0);
+        debug_assert!(b <= 1.0);
+        debug_assert!(a <= 1.0);
+        // truncate values to 255
+        let r = maxf(0.0f32, minf(255.0, r * 255.0)) as u8;
+        let g = maxf(0.0f32, minf(255.0, g * 255.0)) as u8;
+        let b = maxf(0.0f32, minf(255.0, b * 255.0)) as u8;
+        let a = maxf(0.0f32, minf(255.0, a * 255.0)) as u8;
+
+        // make a u32
+        let colour = u32::from_le_bytes([r, g, b, a]);
+
         unsafe {
             let size = (self.width * self.height) as usize;
 
@@ -78,6 +101,8 @@ pub fn epic() {
     let mut event_pump = context.event_pump().unwrap();
 
     let mut running = true;
+
+    let (mut mouse_x, mut mouse_y) = (0, 0);
 
     while running {
         let now = Instant::now();
@@ -102,6 +127,11 @@ pub fn epic() {
                     running = false;
                     break;
                 }
+                Event::MouseMotion { x, y, .. } => {
+                    // relative to the top left of the screen!
+                    mouse_x = x;
+                    mouse_y = y;
+                }
                 Event::Window {
                     win_event: WindowEvent::Resized(width, height),
                     ..
@@ -117,8 +147,10 @@ pub fn epic() {
             }
         }
 
-        let colour = 0xFF_FF_DF_DF;
-        state.fill(colour);
+        let r = mouse_x as f32 / state.width as f32;
+        let g = mouse_y as f32 / state.height as f32;
+
+        state.fill(r, g, 1.0, 1.0);
 
         let mut ws = state.window.surface(&event_pump).unwrap();
         let rect: Rect = state.create_rect();
